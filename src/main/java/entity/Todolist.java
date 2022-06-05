@@ -1,9 +1,11 @@
 package entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @NamedQuery(name = "listTasks", query = "SELECT t from Todolist t ")
+@NamedQuery(name = "removeById", query = "delete from Todolist where id=?1")
 public class Todolist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -20,6 +22,7 @@ public class Todolist {
     public void setId(Long id) {
         this.id = id;
     }
+
 
     public String getTask() {
         return task;
@@ -52,9 +55,8 @@ public class Todolist {
 
     @Override
     public String toString() {
-        return "Todolist{" +
-                "id=" + id +
-                ", task='" + task + '\'' +
-                '}';
+        return
+                 id +
+                " " + task ;
     }
 }

@@ -1,15 +1,14 @@
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.Persistence;
+import entity.Todolist;
+import jakarta.persistence.*;
 
 import java.util.Scanner;
 
 public class Main {
-    static TaskList tasks = new TaskList();
+
     static EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
     static EntityManager entityManager = entityManagerFactory.createEntityManager();
     static EntityTransaction transaction = entityManager.getTransaction();
+    static Todolist taskList = new Todolist();
 
     public static void main(String[] args) {
 
@@ -41,7 +40,10 @@ public class Main {
                 menu();
                 break;
             case 4:
+                entityManager.close();
+                entityManagerFactory.close();
                 System.out.println("Goodbye");
+
                 return;
 
             default:
@@ -52,28 +54,43 @@ public class Main {
     }
 
     private static void printTasks() {
+        try {
+            transaction.begin();
 
-        if (tasks.listSize() < 1) {
-            System.out.println("Your to-do list is empty.\n");
-        } else {
-            tasks.printList();
+            TypedQuery<Todolist> allTaskQuery = entityManager.createNamedQuery("listTasks", Todolist.class);
+
+            for (Todolist tasks : allTaskQuery.getResultList()){
+                System.out.println(tasks);
+            }
+
+        }finally {
+            if(transaction.isActive()){
+                transaction.rollback();
+            }
         }
     }
 
 
     private static void removeItemMenu(Scanner input) {
-        int index;
+        Long index;
 
-        System.out.println("Please select item to remove");
-        tasks.printList();
-        index = input.nextInt();
+        System.out.println("Please select item to remove by id");
+        printTasks();
+        index = input.nextLong();
+        try {
+            transaction.begin();
+            Query removeById = entityManager.createQuery("delete from Todolist where id=?1");
+            removeById.setParameter(1,index);
+            removeById.executeUpdate();
 
-        if (index > tasks.listSize()) {
-            System.out.println("Invalid selection, try again");
-            removeItemMenu(input);
-        } else {
-            tasks.removeTask(index);
+            transaction.commit();
+
+        }finally {
+            if(transaction.isActive()){
+                transaction.rollback();
+            }
         }
+
         menu();
     }
 
@@ -82,7 +99,17 @@ public class Main {
         System.out.println("Please enter task");
         input.nextLine();
         task = input.nextLine();
-        tasks.addTask(task);
+        try {
+            transaction.begin();
+          taskList.setTask(task);
+            entityManager.persist(taskList);
+            transaction.commit();
+
+        }finally {
+            if(transaction.isActive()){
+                transaction.rollback();
+            }
+        }
         menu();
     }
 }
