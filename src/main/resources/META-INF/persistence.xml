@@ -5,7 +5,8 @@
              version="2.2">
     <persistence-unit name="default">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-        <class>entity.TodolistEntity</class>
+        <class>entity.Todolist</class>
+
 
         <properties>
 
